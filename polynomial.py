@@ -7,10 +7,14 @@ import numpy as np
 class Dispatcher:
     supported_dtypes = (np.float32, np.float64)
 
-    _lut = {(1, "C", np.dtype(np.float32)): base.PolynomialFeatures.CC32,
-            (1, "C", np.dtype(np.float64)): base.PolynomialFeatures.CC64,
-            (0, "F", np.dtype(np.float32)): base.PolynomialFeatures.FF32,
-            (0, "F", np.dtype(np.float64)): base.PolynomialFeatures.FF64}
+    _lut = {(1, "C", np.dtype(np.float32)): base.PolynomialFeatures.C2C32,
+            (1, "C", np.dtype(np.float64)): base.PolynomialFeatures.C2C64,
+            (0, "C", np.dtype(np.float32)): base.PolynomialFeatures.F2C32,
+            (0, "C", np.dtype(np.float64)): base.PolynomialFeatures.F2C64,
+            (0, "F", np.dtype(np.float32)): base.PolynomialFeatures.F2F32,
+            (0, "F", np.dtype(np.float64)): base.PolynomialFeatures.F2F64,
+            (1, "F", np.dtype(np.float32)): base.PolynomialFeatures.C2F32,
+            (1, "F", np.dtype(np.float64)): base.PolynomialFeatures.C2F64,}
 
     def __init__(self, order):
         self.order = order.upper()
@@ -38,5 +42,5 @@ class PolynomialFeatures(base.PolynomialFeatures):
     def transform(self, X):
         fun = self.dispatcher(X)
         if not fun:
-            raise RuntimeError()
+            raise TypeError()
         return fun(self, X)
