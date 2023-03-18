@@ -35,7 +35,7 @@ for settings in product(dtype_options,
     X = np.random.rand(2, n_features).astype(dtype)
     X = layout(X)
 
-    fast_poly = CustomPolynomialFeatures(
+    custom_poly = CustomPolynomialFeatures(
         degree, 
         interaction_only=interaction_only, 
         include_bias=interaction_only, 
@@ -49,13 +49,10 @@ for settings in product(dtype_options,
         order=order, 
     )
 
-    fast_poly = fast_poly.fit(X)
+    custom_poly = custom_poly.fit(X)
     sklearn_poly = sklearn_poly.fit(X)
     
-    try:
-        XP_fast = fast_poly.transform(X)
-        XP_sklearn = sklearn_poly.transform(X)
-        
-        assert np.allclose(XP_fast, XP_sklearn)
-    except RuntimeError:
-        continue 
+    XP_custom = custom_poly.transform(X)
+    XP_sklearn = sklearn_poly.transform(X)
+    
+    assert np.allclose(XP_custom, XP_sklearn), str(settings)

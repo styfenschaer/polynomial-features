@@ -22,28 +22,40 @@ class Timer:
     def __truediv__(self, other):
         ratio = self.elapsed / other.elapsed
         print(f"Ratio: {ratio:.2f}")
-        
-        
-X = np.random.rand(10_000_000, 5)
-# X = np.asfortranarray(X)
 
-kwargs = dict(
-    degree=3,
-    interaction_only=False,
-    include_bias=True,
-    order="C" if X.flags.c_contiguous else "F",
-)
 
-custom_poly = CustomPolynomialFeatures(**kwargs, n_jobs=1)
-sklearn_poly = SklearnPolynomialFeatures(**kwargs)
+N = 10_000_000
+M = 10
+X = np.arange(N*M, dtype=np.float64).reshape(N, M)
 
-custom_poly = custom_poly.fit(X)
-sklearn_poly = sklearn_poly.fit(X)
+for layout, order in [(np.ascontiguousarray, "C"),
+                      (np.asfortranarray, "C"),
+                      (np.asfortranarray, "F"),
+                      (np.ascontiguousarray, "F")]:
+    X = layout(X)
 
-with Timer("Custom") as custom_time:
-    custom_poly.transform(X)
+    kwargs = dict(
+        degree=2,
+        interaction_only=False,
+        include_bias=True,
+        order=order,
+    )
 
-with Timer("Sklearn") as sklearn_time:
-    sklearn_poly.transform(X)
+    custom_poly = CustomPolynomialFeatures(**kwargs, n_jobs=4)
+    sklearn_poly = SklearnPolynomialFeatures(**kwargs)
 
-sklearn_time / custom_time
+    custom_poly = custom_poly.fit(X)
+    sklearn_poly = sklearn_poly.fit(X)
+
+
+    from_layout = "C" if X.flags.c_contiguous else "F"
+    to_layout = kwargs.get("order")
+    print(f"\n{from_layout} to {to_layout}")
+
+    with Timer("Custom") as custom_time:
+        custom_poly.transform(X)
+
+    with Timer("Sklearn") as sklearn_time:
+        sklearn_poly.transform(X)
+
+    sklearn_time / custom_time
